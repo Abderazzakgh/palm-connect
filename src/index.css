@@ -1,0 +1,136 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* الأزرق البحري */
+    --primary: 218 60% 22%; /* Navy blue */
+    --primary-foreground: 0 0% 100%;
+
+    /* الأصفر الذهبي */
+    --secondary: 45 95% 51%; /* Golden yellow */
+    --secondary-foreground: 218 60% 22%;
+
+    --accent: 45 95% 51%;
+    --accent-foreground: 218 60% 22%;
+
+    --background: 0 0% 100%; /* أبيض */
+    --foreground: 218 60% 22%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 218 60% 22%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 60% 22%;
+
+    --muted: 218 60% 96%;
+    --muted-foreground: 218 20% 47%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 218 30% 88%;
+    --input: 218 30% 90%;
+    --ring: 218 60% 22%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(218 60% 22%), hsl(218 60% 32%));
+    --gradient-secondary: linear-gradient(135deg, hsl(45 95% 51%), hsl(45 95% 61%));
+    --gradient-hero: linear-gradient(135deg, hsl(218 60% 18%) 0%, hsl(218 60% 32%) 100%);
+
+    --shadow-sm: 0 2px 8px hsl(218 60% 22% / 0.08);
+    --shadow-md: 0 4px 16px hsl(218 60% 22% / 0.12);
+    --shadow-lg: 0 8px 32px hsl(218 60% 22% / 0.16);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 218 60% 98%;
+    --sidebar-foreground: 218 60% 22%;
+    --sidebar-primary: 218 60% 22%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 45 95% 51%;
+    --sidebar-accent-foreground: 218 60% 22%;
+    --sidebar-border: 218 30% 88%;
+    --sidebar-ring: 218 60% 22%;
+  }
+
+  .dark {
+    --background: 215 30% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 25% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 215 85% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 85% 55%;
+    --secondary-foreground: 218 60% 22%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 45 85% 55%;
+    --accent-foreground: 218 60% 22%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 215 85% 45%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(215 85% 35%), hsl(215 85% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(45 85% 50%), hsl(45 85% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(215 85% 20%) 0%, hsl(215 85% 35%) 100%);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 215 85% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 85% 55%;
+    --sidebar-accent-foreground: 218 60% 22%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 215 85% 45%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Professional Scanning animations used by Scanner page */
+@keyframes scan-y {
+  0% { transform: translateY(-120%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+
+@keyframes scan-y-reverse {
+  0% { transform: translateY(120%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(-120%); opacity: 0; }
+}
+
+.animate-scan-y {
+  animation: scan-y 1.2s linear infinite;
+}
+
+.animate-scan-y-reverse {
+  animation: scan-y-reverse 1.2s linear infinite;
+}
