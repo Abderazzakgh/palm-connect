@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار نظام تحليل بصمة الكف</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .status.success {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+        .status.error {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+        .api-test {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        .service-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 اختبار نظام تحليل بصمة الكف</h1>
+        
+        <div class="status" id="overallStatus">
+            جاري التحقق من حالة النظام...
+        </div>
+
+        <div class="api-test">
+            <h3>📊 التحقق من الحالة</h3>
+            <button onclick="checkHealth()">التحقق من الحالة</button>
+            <div class="result" id="healthResult"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>🔍 تحليل بصمة كف وهمية</h3>
+            <button onclick="analyzePalm()">تحليل بصمة الكف</button>
+            <div class="result" id="analyzeResult"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>🖼️ رفع صورة لتحليل بصمة الكف</h3>
+            <div class="upload-area">
+                <input type="file" id="imageUpload" accept="image/*" onchange="previewImage(event)">
+                <p>اختر صورة بصمة كف ( JPG, PNG )</p>
+                <button onclick="uploadAndAnalyze()" id="analyzeBtn" disabled>تحليل الصورة</button>
+            </div>
+            <div id="imagePreview"></div>
+            <div class="result" id="uploadResult"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>📋 حالة الخدمات</h3>
+            <div id="serviceStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        
+        // التحقق من الحالة
+        async function checkHealth() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.textContent = 'جاري التحقق...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                
+                document.getElementById('overallStatus').className = 'status success';
+                document.getElementById('overallStatus').textContent = '✅ النظام يعمل بشكل صحيح!';
+                
+                updateServiceStatus(data);
+            } catch (error) {
+                resultDiv.textContent = `❌ خطأ: ${error.message}`;
+                document.getElementById('overallStatus').className = 'status error';
+                document.getElementById('overallStatus').textContent = '❌ النظام غير متاح!';
+            }
+        }
+
+        // تحليل بصمة الكف الوهمية
+        async function analyzePalm() {
+            const resultDiv = document.getElementById('analyzeResult');
+            resultDiv.textContent = 'جاري التحليل...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/palm-analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        imageUrl: 'https://example.com/test_palm.jpg',
+                        userId: 'test_user_123'
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.textContent = `❌ خطأ: ${error.message}`;
+            }
+        }
+
+        // معاينة الصورة
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = 
+                        `<img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 10px;">`;
+                    document.getElementById('analyzeBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // رفع وتحليل الصورة
+        async function uploadAndAnalyze() {
+            const fileInput = document.getElementById('imageUpload');
+            const resultDiv = document.getElementById('uploadResult');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                resultDiv.textContent = '❌ يرجى اختيار صورة أولاً';
+                return;
+            }
+
+            resultDiv.textContent = 'جاري تحميل وتحليل الصورة...';
+            
+            // في تطبيق حقيقي، سترفع الصورة إلى الخادم
+            // هذا مثال بسيط لاختبار API
+            try {
+                // محاكاة تحليل الصورة (باستخدام رابط وهمي)
+                const response = await fetch(`${API_BASE}/api/palm-analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        imageUrl: URL.createObjectURL(file),
+                        userId: 'test_user_123'
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.textContent = `❌ خطأ: ${error.message}`;
+            }
+        }
+
+        // تحديث حالة الخدمات
+        function updateServiceStatus(healthData) {
+            const statusDiv = document.getElementById('serviceStatus');
+            statusDiv.innerHTML = '';
+            
+            if (healthData && healthData.services) {
+                Object.entries(healthData.services).forEach(([service, status]) => {
+                    const serviceDiv = document.createElement('div');
+                    serviceDiv.className = 'service-status';
+                    serviceDiv.innerHTML = `
+                        <span>${service}:</span>
+                        <span>${status ? '✅ جاهز' : '❌ غير جاهز'}</span>
+                    `;
+                    statusDiv.appendChild(serviceDiv);
+                });
+            }
+        }
+
+        // التحقق التلقائي عند تحميل الصفحة
+        window.onload = function() {
+            setTimeout(checkHealth, 1000);
+        };
+    </script>
+</body>
+</html>

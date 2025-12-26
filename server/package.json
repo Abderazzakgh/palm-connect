@@ -5,9 +5,10 @@
   "scripts": {
     "start:app": "node app-service/index.js",
     "start:algo": "node algo-service/index.js",
-    "start:all": "concurrently \"npm:run start:app\" \"npm:run start:algo\"",
+    "start:all": "concurrently "npm:run start:app" "npm:run start:algo"",
     "test:xfwd": "node test-client/xfwd_test.js",
-    "test:integration": "node test-client/integration_test.js"
+    "test:integration": "node test-client/integration_test.js",
+    "palm-api": "cd palm_analysis && python api.py"
   },
   "dependencies": {
     "body-parser": "^1.20.2",

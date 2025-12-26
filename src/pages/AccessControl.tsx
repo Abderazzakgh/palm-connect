@@ -17,7 +17,7 @@ const fetchPalmPrint = async (hash: string) => {
     .from("palm_prints")
     .select("id, matched_user_id")
     .eq("status", "completed")
-    .eq("palm_hash", hash)
+    .eq("qr_code", hash)  // استخدام qr_code بدلاً من palm_hash
     .maybeSingle();
 
   if (error) throw error;
@@ -67,8 +67,12 @@ const AccessControl = () => {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate('/auth'); return; }
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) { 
+        navigate('/auth'); 
+        return; 
+      }
+      
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('*, palm_prints(*)')
@@ -87,6 +91,9 @@ const AccessControl = () => {
       if (!hasBankInfo) {
         toast({ title: 'أكمل بياناتك', description: 'يرجى إكمال معلوماتك الشخصية والبنكية', variant: 'destructive' });
         navigate('/dashboard');
+      } else {
+        // إذا كانت جميع البيانات مكتملة، يمكن للمستخدم استخدام النظام
+        // لا نقوم بأي توجيه إضافي
       }
     })();
   }, [navigate, toast]);
@@ -97,27 +104,38 @@ const AccessControl = () => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const { data: palmPrints, error } = await supabase
-        .from("palm_prints")
-        .select("palm_hash")
-        .eq("status", "completed")
-        .limit(1);
-
-      if (error) throw error;
-
-      if (palmPrints && palmPrints.length > 0) {
-        setPalmHash(palmPrints[0].palm_hash);
+      // استخدام القيمة المحفوظة في localStorage من Scanner
+      const savedQr = localStorage.getItem('created_qr');
+      if (savedQr) {
+        setPalmHash(savedQr);
         toast({
           title: "تم المسح بنجاح",
           description: "تم التعرف على بصمة الكف.",
         });
       } else {
-        const hash = `PALM-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        setPalmHash(hash);
-        toast({
-          title: "تم المسح (تجريبي)",
-          description: "في الإصدار الفعلي سيتم الحصول على البصمة من الجهاز.",
-        });
+        // إذا لم تكن هناك قيمة محفوظة، نبحث في قاعدة البيانات
+        const { data: palmPrints, error } = await supabase
+          .from("palm_prints")
+          .select("qr_code")  // استخدام qr_code بدلاً من palm_hash
+          .eq("status", "completed")
+          .limit(1);
+
+        if (error) throw error;
+
+        if (palmPrints && palmPrints.length > 0) {
+          setPalmHash(palmPrints[0].qr_code);  // استخدام qr_code بدلاً من palm_hash
+          toast({
+            title: "تم المسح بنجاح",
+            description: "تم التعرف على بصمة الكف.",
+          });
+        } else {
+          const hash = `PALM-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          setPalmHash(hash);
+          toast({
+            title: "تم المسح (تجريبي)",
+            description: "في الإصدار الفعلي سيتم الحصول على البصمة من الجهاز.",
+          });
+        }
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "حدث خطأ غير متوقع.";
@@ -147,12 +165,12 @@ const AccessControl = () => {
       if (!palmPrint) throw new Error("بصمة الكف غير مسجلة أو غير مفعلة.");
 
       // 2️⃣ التحقق من matched_user_id
-      if (!palmPrint.matched_user_id || palmPrint.matched_user_id === "null") {
+      if (!palmPrint.matched_user_id || palmPrint.matched_user_id === "null" || palmPrint.matched_user_id === "") {
         throw new Error("هذه البصمة غير مرتبطة بأي مستخدم.");
       }
 
       const profile = await fetchUserProfile(palmPrint.matched_user_id);
-      if (!profile || !profile.user_id || profile.user_id === "null") {
+      if (!profile || !profile.user_id || profile.user_id === "null" || profile.user_id === "") {
         throw new Error("الملف الشخصي غير مكتمل ولا يحتوي على User ID صالح.");
       }
 
@@ -193,26 +211,57 @@ const AccessControl = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       <div className="container mx-auto max-w-2xl">
         <div className="grid gap-2 mb-6 md:grid-cols-5">
-          <Button variant="default" disabled className="justify-start">1) إنشاء حساب</Button>
-          <Button variant="default" className="justify-start" onClick={() => navigate('/scanner')}>2) إنشاء الباركود</Button>
-          <Button variant="default" className="justify-start" onClick={() => navigate('/barcode')}>3) قراءة الباركود</Button>
-          <Button variant="default" className="justify-start" onClick={() => navigate('/dashboard')}>4) إكمال الملف</Button>
-          <Button variant="default" disabled className="justify-start">5) البدء بالاستخدام</Button>
+          <Button variant="default" disabled className="justify-start bg-primary/20 hover:bg-primary/30">
+            <span className="flex items-center gap-1">
+              1) إنشاء حساب
+            </span>
+          </Button>
+          <Button variant="default" className="justify-start bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90" onClick={() => navigate('/scanner')}>
+            <span className="flex items-center gap-1">
+              2) إنشاء الباركود
+            </span>
+          </Button>
+          <Button variant="default" className="justify-start bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90" onClick={() => navigate('/barcode')}>
+            <span className="flex items-center gap-1">
+              3) قراءة الباركود
+            </span>
+          </Button>
+          <Button variant="default" className="justify-start bg-gradient-to-r from-secondary to-primary text-white hover:opacity-90" onClick={() => navigate('/dashboard')}>
+            <span className="flex items-center gap-1">
+              4) إكمال الملف
+            </span>
+          </Button>
+          <Button variant="default" disabled className="justify-start bg-primary/20 hover:bg-primary/30">
+            <span className="flex items-center gap-1">
+              5) البدء بالاستخدام
+            </span>
+          </Button>
         </div>
-        <Button variant="outline" onClick={() => navigate("/")} className="mb-6">
-          العودة للرئيسية
+        <Button variant="outline" onClick={() => navigate("/")} className="mb-6 bg-background/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <span>العودة للرئيسية</span>
+          </div>
         </Button>
 
-        <Card className="shadow-lg border-2 border-primary/10">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Scan className="h-6 w-6 text-primary" />
-              <CardTitle className="text-3xl">نظام التحكم بالدخول</CardTitle>
+        <Card className="shadow-2xl border-2 border-primary/20 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
+          <CardHeader className="space-y-1 relative z-10 pb-6">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+                <Scan className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  نظام التحكم بالدخول
+                </CardTitle>
+                <CardDescription className="text-lg mt-1">
+                  نظام الدخول والخروج بالبصمة الحيوية
+                </CardDescription>
+              </div>
             </div>
-            <CardDescription>نظام الدخول والخروج بالبصمة الحيوية</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 relative z-10 pb-8">
             {/* واجهة الحالات */}
             {accessStatus === "idle" && (
               <>
@@ -220,28 +269,30 @@ const AccessControl = () => {
                   <Button
                     onClick={simulatePalmScan}
                     disabled={scanning}
-                    className="w-full h-16 text-lg"
+                    className="w-full h-16 text-lg bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
                     variant={palmHash ? "secondary" : "default"}
                   >
                     {scanning ? (
-                      <>
+                      <div className="flex items-center gap-2">
                         <Loader2 className="ml-2 h-5 w-5 animate-spin" /> جاري المسح...
-                      </>
+                      </div>
                     ) : palmHash ? (
-                      <>
+                      <div className="flex items-center gap-2">
                         <Check className="ml-2 h-5 w-5" /> تم المسح
-                      </>
+                      </div>
                     ) : (
-                      <>
+                      <div className="flex items-center gap-2">
                         <Scan className="ml-2 h-5 w-5" /> مسح بصمة الكف
-                      </>
+                      </div>
                     )}
                   </Button>
 
                   {palmHash && (
-                    <Badge variant="outline" className="w-full justify-center py-2">
-                      {palmHash}
-                    </Badge>
+                    <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-primary/20">
+                      <div className="text-center font-mono text-sm break-all p-2 bg-primary/5 rounded-lg">
+                        {palmHash}
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -249,14 +300,14 @@ const AccessControl = () => {
                   <Button
                     onClick={() => processAccess("entry")}
                     disabled={!palmHash || processing}
-                    className="h-24 text-lg flex-col gap-2"
+                    className="h-24 text-lg flex-col gap-2 bg-gradient-to-br from-green-500 to-green-600 hover:opacity-90 text-white"
                   >
                     <LogIn className="h-8 w-8" /> دخول
                   </Button>
                   <Button
                     onClick={() => processAccess("exit")}
                     disabled={!palmHash || processing}
-                    className="h-24 text-lg flex-col gap-2"
+                    className="h-24 text-lg flex-col gap-2 bg-gradient-to-br from-red-500 to-red-600 hover:opacity-90 text-white"
                     variant="secondary"
                   >
                     <LogOut className="h-8 w-8" /> خروج
@@ -266,30 +317,34 @@ const AccessControl = () => {
             )}
 
             {accessStatus === "granted" && (
-              <div className="text-center py-12 space-y-4">
-                <div className="mx-auto w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+              <div className="text-center py-12 space-y-6">
+                <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
                   {accessType === "entry" ? (
-                    <LogIn className="h-10 w-10 text-green-600 dark:text-green-400" />
+                    <LogIn className="h-12 w-12 text-white" />
                   ) : (
-                    <LogOut className="h-10 w-10 text-green-600 dark:text-green-400" />
+                    <LogOut className="h-12 w-12 text-white" />
                   )}
                 </div>
-                <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  تم منح {accessType === "entry" ? "الدخول" : "الخروج"}
-                </h3>
-                <p className="text-muted-foreground text-lg">مرحباً، {userName}</p>
+                <div>
+                  <h3 className="text-3xl font-bold text-green-600 mb-2">
+                    ✅ تم منح {accessType === "entry" ? "الدخول" : "الخروج"}
+                  </h3>
+                  <p className="text-xl text-muted-foreground">مرحباً، <span className="font-semibold text-primary">{userName}</span></p>
+                </div>
               </div>
             )}
 
             {accessStatus === "denied" && (
-              <div className="text-center py-12 space-y-4">
-                <div className="mx-auto w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                  <X className="h-10 w-10 text-red-600 dark:text-red-400" />
+              <div className="text-center py-12 space-y-6">
+                <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+                  <X className="h-12 w-12 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  تم رفض الوصول
-                </h3>
-                <p className="text-muted-foreground">بصمة الكف غير مسجلة في النظام.</p>
+                <div>
+                  <h3 className="text-3xl font-bold text-red-600 mb-2">
+                    ❌ تم رفض الوصول
+                  </h3>
+                  <p className="text-xl text-muted-foreground">بصمة الكف غير مسجلة في النظام.</p>
+                </div>
               </div>
             )}
           </CardContent>
