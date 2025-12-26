@@ -192,6 +192,16 @@ const Scanner = () => {
 
       if (insertError) throw insertError;
 
+      // تحديث ملف المستخدم ليرتبط بالبصمة الجديدة
+      const { error: profileUpdateError } = await supabase
+        .from('user_profiles')
+        .update({ palm_print_id: palmData.id })
+        .eq('user_id', currentUser.id);
+
+      if (profileUpdateError) {
+        console.warn('فشل تحديث ملف المستخدم بالبصمة:', profileUpdateError);
+      }
+
       // تحديث الحالة
       setQrCode(qrCodeData);
       localStorage.setItem("palm_registered", "1");

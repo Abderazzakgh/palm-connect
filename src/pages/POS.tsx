@@ -136,12 +136,18 @@ const POS = () => {
         throw new Error('بصمة الكف غير مسجلة أو غير مفعّلة');
       }
 
-      // Find user profile
-      const { data: profile, error: profileError } = await supabase
+      // Find user profile - attempt to match by palm_print_id OR directly by user_id if available
+      let profileQuery = supabase
         .from('user_profiles')
-        .select('user_id, full_name, bank_name')
-        .eq('palm_print_id', palmPrint.id)
-        .maybeSingle();
+        .select('user_id, full_name, bank_name');
+
+      if (palmPrint.matched_user_id) {
+        profileQuery = profileQuery.or(`palm_print_id.eq.${palmPrint.id},user_id.eq.${palmPrint.matched_user_id}`);
+      } else {
+        profileQuery = profileQuery.eq('palm_print_id', palmPrint.id);
+      }
+
+      const { data: profile, error: profileError } = await profileQuery.maybeSingle();
 
       if (profileError || !profile) {
         throw new Error('لم يتم العثور على حساب مرتبط');
