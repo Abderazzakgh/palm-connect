@@ -1,15 +1,12 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "bash install.sh",
+  "installCommand": "rm -rf package-lock.json node_modules && npm install",
   "framework": "vite",
   "devCommand": "vite",
   "build": {
     "env": {
-      "NODE_VERSION": "20.x",
-      "NPM_CONFIG_OPTIONAL": "false",
-      "SKIP_INSTALL_SIMPLE_UPDATE_NOTIFIER": "true",
-      "NODE_OPTIONS": "--max-old-space-size=4096"
+      "NODE_VERSION": "20.x"
     }
   }
 }
