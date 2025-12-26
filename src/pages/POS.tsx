@@ -140,31 +140,45 @@ const POS = () => {
         throw new Error('بصمة الكف غير مسجلة أو غير مفعّلة في النظام');
       }
 
+      // 1. Get current logged in user as ultimate fallback
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
       // Find user profile with maximum resilience
       let profile = null;
 
-      // Step A: Search profile by the direct linked palm_print_id
+      // Priority 1: Search profile by the direct linked palm_print_id
       const { data: p1 } = await supabase
         .from('user_profiles')
         .select('user_id, full_name, bank_name')
         .eq('palm_print_id', palmPrint.id)
         .maybeSingle();
 
-      profile = p1;
+      if (p1) profile = p1;
 
-      // Step B: If not found, search by user_id matched in the palm_print record
+      // Priority 2: Search by user_id matched in the palm_print record (if different)
       if (!profile && palmPrint.matched_user_id) {
         const { data: p2 } = await supabase
           .from('user_profiles')
           .select('user_id, full_name, bank_name')
           .eq('user_id', palmPrint.matched_user_id)
           .maybeSingle();
-        profile = p2;
+        if (p2) profile = p2;
+      }
+
+      // Priority 3: Fallback to current user IF their ID matches the palm print's matched_user_id
+      // This covers cases where the profile exists but isn't linked to the print ID yet.
+      if (!profile && currentUser && palmPrint.matched_user_id === currentUser.id) {
+        const { data: p3 } = await supabase
+          .from('user_profiles')
+          .select('user_id, full_name, bank_name')
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+        if (p3) profile = p3;
       }
 
       if (!profile) {
-        console.warn('Profile sync issue: Palm print found but no corresponding profile linked.', palmPrint);
-        throw new Error('لم يتم العثور على ملف شخصي مرتبط بهذه البصمة. يرجى إكمال تسجيل البيانات في لوحة التحكم.');
+        console.error('CRITICAL: POS profile lookup failed for palm print:', palmPrint.id);
+        throw new Error(`خطأ (POS-404): لم يتم العثور على أي ملف شخصي مرتبط بالبصمة رقم ${palmPrint.id.substring(0, 8)}. تأكد من إكمال بياناتك في لوحة التحكم.`);
       }
 
       // Create transaction record

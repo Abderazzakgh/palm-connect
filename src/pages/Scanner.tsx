@@ -192,14 +192,18 @@ const Scanner = () => {
 
       if (insertError) throw insertError;
 
-      // تحديث ملف المستخدم ليرتبط بالبصمة الجديدة
-      const { error: profileUpdateError } = await supabase
+      // تجديد أو إنشاء ملف المستخدم للربط بالبصمة
+      const { error: profileError } = await supabase
         .from('user_profiles')
-        .update({ palm_print_id: palmData.id })
-        .eq('user_id', currentUser.id);
+        .upsert({
+          user_id: currentUser.id,
+          palm_print_id: palmData.id,
+          full_name: (currentUser.user_metadata?.full_name as string) || 'مستخدم جديد',
+          phone: (currentUser.user_metadata?.phone as string) || '0000000000',
+        }, { onConflict: 'user_id' });
 
-      if (profileUpdateError) {
-        console.warn('فشل تحديث ملف المستخدم بالبصمة:', profileUpdateError);
+      if (profileError) {
+        console.warn('فشل ربط البصمة بالملف الشخصي:', profileError);
       }
 
       // تحديث الحالة
