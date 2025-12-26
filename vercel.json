@@ -2,5 +2,16 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "framework": "vite"
+  "framework": "vite",
+  "devCommand": "vite",
+  "functions": {
+    "node": {
+      "maxDuration": 10
+    }
+  },
+  "build": {
+    "env": {
+      "NODE_VERSION": "20.x"
+    }
+  }
 }
