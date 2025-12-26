@@ -1,7 +1,7 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
+  "installCommand": "npm install --no-optional --legacy-peer-deps",
   "framework": "vite",
   "devCommand": "vite",
   "functions": {
@@ -11,7 +11,9 @@
   },
   "build": {
     "env": {
-      "NODE_VERSION": "20.x"
+      "NODE_VERSION": "20.x",
+      "NPM_CONFIG_OPTIONAL": "false",
+      "SKIP_INSTALL_SIMPLE_UPDATE_NOTIFIER": "true"
     }
   }
 }

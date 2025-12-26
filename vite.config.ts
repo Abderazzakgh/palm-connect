@@ -14,4 +14,31 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Optimize for Vercel deployment
+    rollupOptions: {
+      // Prevent Rollup from trying to load native modules
+      external: [],
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    // Use esbuild for dependencies optimization
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+    // Ensure compatibility
+    target: 'es2015',
+    // Minify for production
+    minify: mode === 'production' ? 'esbuild' : false,
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+    esbuildOptions: {
+      target: 'es2015',
+    },
+  },
 }));
