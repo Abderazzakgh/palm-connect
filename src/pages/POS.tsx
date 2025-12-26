@@ -51,27 +51,49 @@ const POS = () => {
       // Simulate scanning process
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Try to find a completed palm print to simulate
-      // In production, this would come from the actual scanner device
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Priority 1: Current user's own palm print (best for testing/demo)
+      if (user) {
+        const { data: myPrints } = await supabase
+          .from('palm_prints')
+          .select('palm_hash')
+          .eq('status', 'completed')
+          .eq('matched_user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (myPrints && myPrints.length > 0) {
+          setPalmHash(myPrints[0].palm_hash);
+          toast({
+            title: "تم المسح بنجاح",
+            description: "تم التعرف على بصمة كفك الشخصية المرتبطة بحسابك",
+          });
+          return;
+        }
+      }
+
+      // Priority 2: Try to find ANY completed palm print to simulate
       const { data: palmPrints } = await supabase
         .from('palm_prints')
         .select('palm_hash')
         .eq('status', 'completed')
+        .order('created_at', { ascending: false })
         .limit(1);
 
       if (palmPrints && palmPrints.length > 0) {
         setPalmHash(palmPrints[0].palm_hash);
         toast({
           title: "تم المسح بنجاح",
-          description: "تم التعرف على بصمة الكف",
+          description: "تم التعرف على بصمة كف من القاعدة المركزية",
         });
       } else {
-        // Fallback: generate a test hash (for demo purposes)
-        const hash = `PALM-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        // Fallback: generate a test hash (for empty DB demo purposes)
+        const hash = `PALM-DEMO-${Math.random().toString(36).substring(2, 9)}`;
         setPalmHash(hash);
         toast({
-          title: "تم المسح (تجريبي)",
-          description: "في الإنتاج، سيتم الحصول على البصمة من الجهاز الفعلي",
+          title: "تم المسح (نمط تجريبي)",
+          description: "لم يتم العثور على بصمات حقيقية، تم إنشاء بصمة افتراضية",
         });
       }
     } catch (error: unknown) {
@@ -104,53 +126,45 @@ const POS = () => {
     setProcessing(true);
 
     try {
-      // Find palm print by palm_hash or matched_user_id
-      let palmPrint = null;
-      const query = supabase
+      // Find palm print by palm_hash
+      const { data: palmPrint, error: palmError } = await supabase
         .from('palm_prints')
         .select('id, matched_user_id')
-        .eq('status', 'completed');
-
-      // Try matching by palm_hash first
-      const { data: hashMatch, error: hashError } = await query
         .eq('palm_hash', palmHash)
+        .eq('status', 'completed')
         .maybeSingle();
 
-      if (!hashError && hashMatch) {
-        palmPrint = hashMatch;
-      } else {
-        // Try matching by matched_user_id if palmHash is actually a user ID
-        const { data: userMatch, error: userError } = await supabase
-          .from('palm_prints')
-          .select('id, matched_user_id')
-          .eq('status', 'completed')
-          .eq('matched_user_id', palmHash)
-          .maybeSingle();
-
-        if (!userError && userMatch) {
-          palmPrint = userMatch;
-        }
+      if (palmError || !palmPrint) {
+        // Safe check for demo: if it's a demo hash, maybe we just want to succeed?
+        // But the user complained about "Account not found", meaning it GOT past this check.
+        throw new Error('بصمة الكف غير مسجلة أو غير مفعّلة في النظام');
       }
 
-      if (!palmPrint) {
-        throw new Error('بصمة الكف غير مسجلة أو غير مفعّلة');
-      }
+      // Find user profile with maximum resilience
+      let profile = null;
 
-      // Find user profile - attempt to match by palm_print_id OR directly by user_id if available
-      let profileQuery = supabase
+      // Step A: Search profile by the direct linked palm_print_id
+      const { data: p1 } = await supabase
         .from('user_profiles')
-        .select('user_id, full_name, bank_name');
+        .select('user_id, full_name, bank_name')
+        .eq('palm_print_id', palmPrint.id)
+        .maybeSingle();
 
-      if (palmPrint.matched_user_id) {
-        profileQuery = profileQuery.or(`palm_print_id.eq.${palmPrint.id},user_id.eq.${palmPrint.matched_user_id}`);
-      } else {
-        profileQuery = profileQuery.eq('palm_print_id', palmPrint.id);
+      profile = p1;
+
+      // Step B: If not found, search by user_id matched in the palm_print record
+      if (!profile && palmPrint.matched_user_id) {
+        const { data: p2 } = await supabase
+          .from('user_profiles')
+          .select('user_id, full_name, bank_name')
+          .eq('user_id', palmPrint.matched_user_id)
+          .maybeSingle();
+        profile = p2;
       }
 
-      const { data: profile, error: profileError } = await profileQuery.maybeSingle();
-
-      if (profileError || !profile) {
-        throw new Error('لم يتم العثور على حساب مرتبط');
+      if (!profile) {
+        console.warn('Profile sync issue: Palm print found but no corresponding profile linked.', palmPrint);
+        throw new Error('لم يتم العثور على ملف شخصي مرتبط بهذه البصمة. يرجى إكمال تسجيل البيانات في لوحة التحكم.');
       }
 
       // Create transaction record
