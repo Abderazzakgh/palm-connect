@@ -9,17 +9,20 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* الأزرق البحري */
-    --primary: 218 60% 22%; /* Navy blue */
+    --primary: 218 60% 22%;
+    /* Navy blue */
     --primary-foreground: 0 0% 100%;
 
     /* الأصفر الذهبي */
-    --secondary: 45 95% 51%; /* Golden yellow */
+    --secondary: 45 95% 51%;
+    /* Golden yellow */
     --secondary-foreground: 218 60% 22%;
 
     --accent: 45 95% 51%;
     --accent-foreground: 218 60% 22%;
 
-    --background: 0 0% 100%; /* أبيض */
+    --background: 0 0% 100%;
+    /* أبيض */
     --foreground: 218 60% 22%;
 
     --card: 0 0% 100%;
@@ -48,7 +51,11 @@ All colors MUST be HSL.
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --radius: 0.5rem;
+    --radius: 1rem;
+
+    --glass-background: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 
     --sidebar-background: 218 60% 98%;
     --sidebar-foreground: 218 60% 22%;
@@ -61,6 +68,9 @@ All colors MUST be HSL.
   }
 
   .dark {
+    --glass-background: rgba(15, 23, 42, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
     --background: 215 30% 8%;
     --foreground: 210 40% 98%;
 
@@ -88,7 +98,7 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 215 85% 45%;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(215 85% 35%), hsl(215 85% 50%));
     --gradient-secondary: linear-gradient(135deg, hsl(45 85% 50%), hsl(45 85% 60%));
     --gradient-hero: linear-gradient(135deg, hsl(215 85% 20%) 0%, hsl(215 85% 35%) 100%);
@@ -116,39 +126,64 @@ All colors MUST be HSL.
 
 /* Professional Scanning animations used by Scanner page */
 @keyframes scan-y {
-  0% { transform: translateY(-120%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateY(120%); opacity: 0; }
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
 }
 
 @keyframes scan-y-reverse {
-  0% { transform: translateY(120%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateY(-120%); opacity: 0; }
+  0% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
 }
 
 /* Barcode Scanner animation - vertical scanning line */
 @keyframes scan {
-  0% { 
-    transform: translateY(0); 
-    opacity: 0.3; 
+  0% {
+    transform: translateY(0);
+    opacity: 0.3;
   }
-  50% { 
-    opacity: 1; 
+
+  50% {
+    opacity: 1;
   }
-  100% { 
-    transform: translateY(300px); 
-    opacity: 0.3; 
+
+  100% {
+    transform: translateY(300px);
+    opacity: 0.3;
   }
 }
 
 /* Smart pulse animation for active scanning */
 @keyframes smart-pulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
-  50% { 
+
+  50% {
     opacity: 0.7;
     transform: scale(1.02);
   }
@@ -160,12 +195,64 @@ All colors MUST be HSL.
     transform: rotate(0deg);
     opacity: 0.3;
   }
+
   50% {
     opacity: 0.8;
   }
+
   100% {
     transform: rotate(360deg);
     opacity: 0.3;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes float-slow {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(1deg);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes matrix {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 0% 100%;
   }
 }
 
@@ -187,4 +274,56 @@ All colors MUST be HSL.
 
 .animate-radar-sweep {
   animation: radar-sweep 3s linear infinite;
+}
+
+.animate-blob {
+  animation: blob 7s infinite alternate;
+}
+
+.animate-float-slow {
+  animation: float-slow 5s ease-in-out infinite;
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+.animate-matrix {
+  animation: matrix 20s linear infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.text-glow {
+  text-shadow: 0 0 10px hsla(45, 95%, 51%, 0.5), 0 0 20px hsla(45, 95%, 51%, 0.3);
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .mesh-bg {
+    background-color: #050B18;
+    background-image:
+      radial-gradient(circle at 0% 0%, hsla(218, 60%, 22%, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 100% 0%, hsla(45, 95%, 51%, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, hsla(218, 60%, 12%, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, hsla(45, 95%, 51%, 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  .feature-card {
+    @apply relative overflow-hidden transition-all duration-700 hover:scale-[1.05] hover:-translate-y-4;
+  }
 }

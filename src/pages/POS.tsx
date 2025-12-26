@@ -33,7 +33,7 @@ const POS = () => {
       const hasPalmLinked = !!prof?.palm_print_id || ((prof?.palm_prints?.length ?? 0) > 0);
       const hasBankInfo = !!prof?.atm_card_last_4 && !!prof?.bank_name;
 
-      if (!hasPalmLinked) { 
+      if (!hasPalmLinked) {
         toast({ title: 'أكمل المرحلة السابقة', description: 'يجب ربط بصمة الكف أولاً', variant: 'destructive' });
         navigate('/scanner');
         return;
@@ -50,7 +50,7 @@ const POS = () => {
     try {
       // Simulate scanning process
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Try to find a completed palm print to simulate
       // In production, this would come from the actual scanner device
       const { data: palmPrints } = await supabase
@@ -58,7 +58,7 @@ const POS = () => {
         .select('palm_hash')
         .eq('status', 'completed')
         .limit(1);
-      
+
       if (palmPrints && palmPrints.length > 0) {
         setPalmHash(palmPrints[0].palm_hash);
         toast({
@@ -110,12 +110,12 @@ const POS = () => {
         .from('palm_prints')
         .select('id, matched_user_id')
         .eq('status', 'completed');
-      
+
       // Try matching by palm_hash first
       const { data: hashMatch, error: hashError } = await query
         .eq('palm_hash', palmHash)
         .maybeSingle();
-      
+
       if (!hashError && hashMatch) {
         palmPrint = hashMatch;
       } else {
@@ -126,7 +126,7 @@ const POS = () => {
           .eq('status', 'completed')
           .eq('matched_user_id', palmHash)
           .maybeSingle();
-        
+
         if (!userError && userMatch) {
           palmPrint = userMatch;
         }
@@ -192,135 +192,182 @@ const POS = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
-      <div className="container mx-auto max-w-2xl">
-        <div className="grid gap-2 mb-6 md:grid-cols-5">
-          <Button variant="default" disabled className="justify-start">1) إنشاء حساب</Button>
-          <Button variant="default" className="justify-start" onClick={() => navigate('/scanner')}>2) إنشاء الباركود</Button>
-          <Button variant="default" className="justify-start" onClick={() => navigate('/barcode')}>3) قراءة الباركود</Button>
-          <Button variant="default" className="justify-start" onClick={() => navigate('/dashboard')}>4) إكمال الملف</Button>
-          <Button variant="default" disabled className="justify-start">5) البدء بالاستخدام</Button>
+    <div className="min-h-screen mesh-bg py-20 px-4 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px] animate-blob"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
+
+      <div className="container mx-auto max-w-4xl relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
+            className="text-white/60 hover:text-white hover:bg-white/5 rounded-2xl transition-all font-bold tracking-widest uppercase text-xs"
+          >
+            العودة للرئيسية
+          </Button>
+
+          <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl backdrop-blur-md border border-white/5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <div
+                key={s}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-500 ${s <= 4 ? "bg-secondary text-primary shadow-lg shadow-secondary/20" : "bg-white/10 text-white/20"
+                  }`}
+              >
+                {s}
+              </div>
+            ))}
+          </div>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/')}
-          className="mb-6"
-        >
-          العودة للرئيسية
-        </Button>
 
-        <Card className="shadow-lg border-2 border-primary/10">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-6 w-6 text-primary" />
-              <CardTitle className="text-3xl">نقطة البيع - POS</CardTitle>
+        <div className="grid md:grid-cols-2 gap-8 items-stretch">
+          {/* Left Side: Terminals Info */}
+          <div className="relative glass-card p-10 rounded-[3rem] border-white/10 flex flex-col justify-between overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-secondary/40 to-transparent"></div>
+
+            <div>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-secondary/20 to-primary/20 flex items-center justify-center mb-8 border border-white/10 animate-float">
+                <CreditCard className="h-8 w-8 text-secondary" />
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
+                محطة <span className="text-secondary text-glow">الدفع</span> البيومترية
+              </h1>
+              <p className="text-white/40 text-lg font-light leading-relaxed mb-8">
+                نظام الدفع المستقبلي المعتمد على بصمة الكف. سرعة، أمان، وسهولة تامة في كل معاملة.
+              </p>
             </div>
-            <CardDescription>
-              نظام الدفع بالبصمة الحيوية
-            </CardDescription>
-          </CardHeader>
 
-          <CardContent className="space-y-6">
-            {paymentStatus === 'idle' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="amount">المبلغ (ريال)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="text-2xl font-bold h-14"
-                    step="0.01"
-                    min="0"
-                  />
+            <div className="space-y-4">
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-4 group-hover:bg-white/10 transition-colors">
+                <div className="h-4 w-4 rounded-full bg-green-500 animate-pulse"></div>
+                <div>
+                  <p className="text-white font-bold text-sm">نقطة البيع متصلة</p>
+                  <p className="text-white/30 text-xs uppercase tracking-widest">المعرف: POS-092-DELTA</p>
                 </div>
+              </div>
+            </div>
+          </div>
 
-                <div className="space-y-4">
-                  <Label>بصمة الكف</Label>
-                  <div className="flex gap-2">
+          {/* Right Side: Payment Logic */}
+          <div className="glass-card rounded-[3rem] border-white/10 overflow-hidden shadow-2xl">
+            <CardContent className="p-10 md:p-12 space-y-8">
+              {paymentStatus === 'idle' && (
+                <>
+                  <div className="space-y-4">
+                    <Label className="text-white/50 font-bold uppercase tracking-[0.2em] text-[10px] mr-1">المبلغ المطلوب</Label>
+                    <div className="relative group">
+                      <div className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-secondary">SAR</div>
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="text-5xl font-black h-24 bg-white/5 border-white/10 text-white rounded-[2rem] pl-20 pr-8 focus:ring-secondary/30 focus:border-secondary transition-all"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-white/50 font-bold uppercase tracking-[0.2em] text-[10px] mr-1">المصادقة البيومترية</Label>
                     <Button
                       onClick={simulatePalmScan}
                       disabled={scanning}
-                      className="flex-1"
-                      variant={palmHash ? "secondary" : "default"}
+                      className={`w-full h-20 rounded-[2rem] transition-all duration-700 font-black text-xl group relative overflow-hidden ${palmHash
+                        ? "bg-green-500/20 text-green-400 border-2 border-green-500/30"
+                        : "bg-white/5 text-white border-2 border-white/10 hover:border-secondary/50"
+                        }`}
                     >
-                      {scanning ? (
-                        <>
-                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                          جاري المسح...
-                        </>
-                      ) : palmHash ? (
-                        <>
-                          <Check className="ml-2 h-4 w-4" />
-                          تم المسح
-                        </>
-                      ) : (
-                        <>
-                          <Scan className="ml-2 h-4 w-4" />
-                          مسح بصمة الكف
-                        </>
+                      <div className="relative z-10 flex items-center justify-center gap-4">
+                        {scanning ? (
+                          <>
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            جاري التعرف المركزي...
+                          </>
+                        ) : palmHash ? (
+                          <>
+                            <Check className="h-6 w-6" />
+                            تم اكتشاف البصمة
+                          </>
+                        ) : (
+                          <>
+                            <Scan className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                            مسح بصمة الكف
+                          </>
+                        )}
+                      </div>
+                      {!palmHash && !scanning && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                       )}
                     </Button>
+                    {palmHash && (
+                      <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10 text-center animate-in fade-in zoom-in duration-500">
+                        <span className="text-[10px] font-black text-green-500/60 uppercase tracking-widest">{palmHash}</span>
+                      </div>
+                    )}
                   </div>
-                  {palmHash && (
-                    <Badge variant="outline" className="w-full justify-center py-2">
-                      {palmHash}
-                    </Badge>
-                  )}
-                </div>
 
-                <Button
-                  onClick={processPayment}
-                  disabled={!amount || !palmHash || processing}
-                  className="w-full h-14 text-lg"
-                  size="lg"
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                      جاري المعالجة...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="ml-2 h-5 w-5" />
-                      تنفيذ عملية الدفع
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
+                  <Button
+                    onClick={processPayment}
+                    disabled={!amount || !palmHash || processing}
+                    className="w-full h-20 bg-secondary text-primary hover:bg-white hover:scale-[1.02] transition-all duration-500 font-black text-2xl rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(251,191,36,0.3)]"
+                  >
+                    {processing ? (
+                      <div className="flex items-center gap-4">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        جاري معالجة الدفع...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <CreditCard className="h-6 w-6" />
+                        تأكيد الدفع الآن
+                      </div>
+                    )}
+                  </Button>
+                </>
+              )}
 
-            {paymentStatus === 'success' && (
-              <div className="text-center py-12 space-y-4">
-                <div className="mx-auto w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                  <Check className="h-10 w-10 text-green-600 dark:text-green-400" />
+              {paymentStatus === 'success' && (
+                <div className="text-center py-16 space-y-8 animate-in zoom-in duration-700">
+                  <div className="relative inline-block">
+                    <div className="w-32 h-32 rounded-full bg-green-500/20 flex items-center justify-center border-4 border-green-500/50">
+                      <Check className="h-16 w-16 text-green-500 animate-bounce" />
+                    </div>
+                    <div className="absolute -inset-4 bg-green-500/10 rounded-full animate-ping"></div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-4xl font-black text-white italic">تم الدفع بنجاح</h3>
+                    <p className="text-white/40 text-lg font-light">تم خصم المبلغ من محفظتك البيومترية</p>
+                  </div>
+                  <div className="p-6 rounded-3xl bg-white/5 border border-white/5">
+                    <span className="text-5xl font-black text-secondary">{amount}</span>
+                    <span className="text-lg font-bold text-white/30 mr-3 uppercase">SAR</span>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  تمت العملية بنجاح
-                </h3>
-                <p className="text-muted-foreground">
-                  تم خصم {amount} ريال من الحساب
-                </p>
-              </div>
-            )}
+              )}
 
-            {paymentStatus === 'failed' && (
-              <div className="text-center py-12 space-y-4">
-                <div className="mx-auto w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                  <X className="h-10 w-10 text-red-600 dark:text-red-400" />
+              {paymentStatus === 'failed' && (
+                <div className="text-center py-16 space-y-8 animate-in shake duration-500">
+                  <div className="w-32 h-32 mx-auto rounded-full bg-red-500/20 flex items-center justify-center border-4 border-red-500/50">
+                    <X className="h-16 w-16 text-red-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-4xl font-black text-white">فشلت العملية</h3>
+                    <p className="text-white/40 text-lg font-light">حدث خطأ أثناء الاتصال بالخادم المركزي</p>
+                  </div>
+                  <Button
+                    onClick={() => setPaymentStatus('idle')}
+                    className="h-14 px-8 bg-white/5 text-white hover:bg-white/10 rounded-2xl"
+                  >
+                    إعادة المحاولة
+                  </Button>
                 </div>
-                <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  فشلت العملية
-                </h3>
-                <p className="text-muted-foreground">
-                  يرجى المحاولة مرة أخرى
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -108,7 +108,7 @@ const AuthUnified: React.FC = () => {
       .maybeSingle();
 
     const hasPalmLinked = !!profile?.palm_print_id;
-    
+
     // التوجيه بناءً على وجود بصمة
     if (hasPalmLinked) {
       navigate('/dashboard');
@@ -286,252 +286,264 @@ const AuthUnified: React.FC = () => {
 
   // UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50"></div>
-      
-      <Card className="w-full max-w-md shadow-2xl border-0 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl"></div>
-        
-        <CardHeader className="text-center relative z-10 pb-6">
-          <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-2xl">
-            <Fingerprint className="h-12 w-12 text-primary" />
+    <div className="min-h-screen mesh-bg flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Dynamic Background Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] animate-blob"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/30 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
+
+      <div className="w-full max-w-lg relative z-10 transition-all duration-700 animate-in fade-in zoom-in-95">
+        <div className="glass-card rounded-[2.5rem] border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden">
+
+          <div className="absolute top-0 right-0 p-8">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary/20 to-primary/20 backdrop-blur-xl border border-white/10 flex items-center justify-center animate-float">
+              <Fingerprint className="h-6 w-6 text-secondary" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">
-            {view === "login" && "تسجيل الدخول"}
-            {view === "register" && "إنشاء حساب"}
-            {view === "otp" && "دخول عبر الهاتف"}
-            {view === "reset" && "إعادة تعيين كلمة المرور"}
-          </CardTitle>
-          <CardDescription className="text-muted-foreground/80">
-            {view === "login" && "اختر طريقة تسجيل الدخول أو نفّذ تسجيل جديد"}
-            {view === "register" && "أنشئ حسابك وسيتم حفظ اسمك تلقائياً"}
-            {view === "otp" && "أدخل رقم هاتفك لاستلام رمز"}
-            {view === "reset" && "أدخل بريدك لإرسال رابط إعادة التعيين"}
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="relative z-10">
-          {view === "login" && (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">البريد الإلكتروني</Label>
-                <div className="relative">
-                  <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    dir="ltr" 
-                    className="pr-10"
-                  />
+
+          <CardHeader className="text-center pt-16 pb-8">
+            <CardTitle className="text-4xl font-black text-white mb-3 tracking-tight">
+              {view === "login" && "أهلاً بك مجدداً"}
+              {view === "register" && "انضم إلينا"}
+              {view === "otp" && "الدخول السريع"}
+              {view === "reset" && "استعادة الوصول"}
+            </CardTitle>
+            <CardDescription className="text-lg text-white/50 font-light px-8">
+              {view === "login" && "سجل دخولك لتجربة مستقبل المصادقة الرقمية"}
+              {view === "register" && "أنشئ حسابك وابدأ رحلة الأمان البيومتري"}
+              {view === "otp" && "أدخل رقم هاتفك لنرسل لك مفتاح السحاب"}
+              {view === "reset" && "سنرسل لك رابطاً لإعادة تعيين مفاتيحك"}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="px-8 pb-12">
+            {view === "login" && (
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">البريد الإلكتروني</Label>
+                  <div className="relative group">
+                    <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      dir="ltr"
+                      className="h-14 pr-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                      placeholder="name@example.com"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">كلمة المرور</Label>
-                <div className="relative">
-                  <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
-                    className="pr-10"
-                    dir="ltr"
-                  />
-                  <button
-                    type="button"
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center px-1">
+                    <Label htmlFor="password" className="text-white/70 text-sm font-bold uppercase tracking-widest">كلمة المرور</Label>
+                    <button type="button" onClick={() => setView("reset")} className="text-xs text-secondary/70 hover:text-secondary transition-colors">
+                      نسيت كلمة المرور؟
+                    </button>
+                  </div>
+                  <div className="relative group">
+                    <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-14 pr-12 pl-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                      dir="ltr"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-lg" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> جاري...</> : <><LogIn className="mr-2 h-4 w-4" /> تسجيل الدخول</>}
-              </Button>
-              
-              <div className="flex gap-2 mt-3">
-                <Button variant="outline" onClick={() => setView("register")} className="flex-1">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  إنشاء حساب
+
+                <Button type="submit" className="w-full h-14 bg-secondary text-primary hover:bg-white hover:scale-[1.02] transition-all duration-500 font-black text-lg rounded-2xl shadow-xl shadow-secondary/10" disabled={loading}>
+                  {loading ? <><Loader2 className="ml-2 h-5 w-5 animate-spin" /> جاري التحقق...</> : "دخول النظام"}
                 </Button>
-                <Button variant="outline" onClick={() => setView("otp")} className="flex-1">
-                  <Phone className="mr-2 h-4 w-4" />
-                  دخول بالهاتف
-                </Button>
-              </div>
-              
-              <div className="mt-4 text-center">
-                <Button variant="link" onClick={() => setView("reset")}>
-                  نسيت كلمة المرور؟
-                </Button>
-              </div>
-              
-              <div className="mt-4">
-                <div className="text-center mb-2 text-sm text-muted-foreground">أو سجل عبر</div>
-                <div className="flex gap-2">
-                  <Button onClick={() => handleOAuth("google")} className="flex-1 bg-red-500 hover:bg-red-600 text-white">
+
+                <div className="relative py-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/10"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-transparent px-2 text-white/30">أو عبر المنصات</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Button type="button" onClick={() => handleOAuth("google")} className="h-12 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all">
                     Google
                   </Button>
-                  <Button onClick={() => handleOAuth("github")} className="flex-1 bg-gray-800 hover:bg-gray-900 text-white">
+                  <Button type="button" onClick={() => handleOAuth("github")} className="h-12 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-xl transition-all">
                     GitHub
                   </Button>
                 </div>
-              </div>
-            </form>
-          )}
-          
-          {view === "register" && (
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">الاسم الكامل</Label>
-                <div className="relative">
-                  <User className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="fullName" 
-                    type="text" 
-                    value={fullName} 
-                    onChange={(e) => setFullName(e.target.value)} 
-                    required 
-                    className="pr-10"
-                  />
+
+                <div className="flex flex-col gap-3 mt-8">
+                  <Button variant="ghost" onClick={() => setView("register")} className="h-12 text-white/60 hover:text-white hover:bg-white/5 rounded-xl font-bold">
+                    ليس لديك حساب؟ <span className="text-secondary mr-2">أنشئ واحداً الآن</span>
+                  </Button>
+                  <Button variant="ghost" onClick={() => setView("otp")} className="h-12 text-white/60 hover:text-white hover:bg-white/5 rounded-xl font-bold">
+                    الدخول عبر <span className="text-secondary mr-2">رقم الهاتف</span>
+                  </Button>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">البريد الإلكتروني</Label>
-                <div className="relative">
-                  <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    dir="ltr" 
-                    className="pr-10"
-                  />
+              </form>
+            )}
+
+            {view === "register" && (
+              <form onSubmit={handleSignup} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="fullName" className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">الاسم الكامل</Label>
+                  <div className="relative group">
+                    <User className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      className="h-14 pr-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                      placeholder="الاسم الثلاثي"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">كلمة المرور</Label>
-                <div className="relative">
-                  <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
-                    className="pr-10"
-                    dir="ltr"
-                  />
-                  <button
-                    type="button"
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">البريد الإلكتروني</Label>
+                  <div className="relative group">
+                    <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      dir="ltr"
+                      className="h-14 pr-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">كلمة المرور</Label>
+                  <div className="relative group">
+                    <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-14 pr-12 pl-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                      dir="ltr"
+                    />
+                    <button
+                      type="button"
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">الدور الوظيفي</Label>
+                  <Select value={role} onValueChange={(val) => setRole(val as 'user' | 'operator' | 'admin')}>
+                    <SelectTrigger className="h-14 bg-white/5 border-white/10 text-white rounded-2xl">
+                      <SelectValue placeholder="اختر الدور" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-white/10 text-white">
+                      <SelectItem value="user">مستخدم عادي</SelectItem>
+                      <SelectItem value="operator">مشغل نظام</SelectItem>
+                      <SelectItem value="admin">مدير نظام</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button type="submit" className="w-full h-14 bg-secondary text-primary hover:bg-white hover:scale-[1.02] transition-all duration-500 font-black text-lg rounded-2xl shadow-xl shadow-secondary/10" disabled={loading}>
+                  {loading ? <><Loader2 className="ml-2 h-5 w-5 animate-spin" /> جاري البناء...</> : "تأكيد التسجيل"}
+                </Button>
+
+                <div className="mt-6 text-center">
+                  <button type="button" onClick={() => setView("login")} className="text-white/50 hover:text-secondary transition-colors font-medium">
+                    لديك حساب بالفعل؟ <span className="underline mr-1">سجل دخولك</span>
                   </button>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>الدور (Role)</Label>
-                <Select value={role} onValueChange={(val) => setRole(val as 'user' | 'operator' | 'admin')}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="اختر الدور" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="operator">Operator</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold py-6 text-lg" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> جاري...</> : <><UserPlus className="mr-2 h-4 w-4" /> إنشاء حساب</>}
-              </Button>
-              
-              <div className="mt-3 text-center">
-                <Button variant="link" onClick={() => setView("login")}>
-                  لديك حساب؟ تسجيل الدخول
-                </Button>
-              </div>
-            </form>
-          )}
-          
-          {view === "otp" && (
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">رقم الهاتف (بصيغة دولية)</Label>
-                <div className="relative">
-                  <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="phone" 
-                    type="tel" 
-                    placeholder="+216xxxxxxxx" 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    required 
-                    className="pr-10"
-                  />
+              </form>
+            )}
+
+            {view === "otp" && (
+              <form onSubmit={handleSendOtp} className="space-y-8">
+                <div className="space-y-3">
+                  <Label htmlFor="phone" className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">رقم الهاتف الدولي</Label>
+                  <div className="relative group">
+                    <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+216 XX XXX XXX"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      className="h-14 pr-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                      dir="ltr"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-lg" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> جاري...</> : <><Key className="mr-2 h-4 w-4" /> إرسال رمز (OTP)</>}
-              </Button>
-              
-              <div className="mt-2 text-center">
-                <Button variant="link" onClick={() => setView("login")}>
-                  العودة إلى تسجيل الدخول
+
+                <Button type="submit" className="w-full h-14 bg-secondary text-primary hover:bg-white transition-all duration-500 font-black text-lg rounded-2xl shadow-xl" disabled={loading}>
+                  {loading ? <><Loader2 className="ml-2 h-5 w-5 animate-spin" /> جاري الإرسال...</> : "إرسال رمز التحقق"}
                 </Button>
-              </div>
-            </form>
-          )}
-          
-          {view === "reset" && (
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="emailReset">البريد الإلكتروني</Label>
-                <div className="relative">
-                  <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="emailReset" 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    dir="ltr" 
-                    className="pr-10"
-                  />
+
+                <div className="mt-4 text-center">
+                  <button type="button" onClick={() => setView("login")} className="text-white/50 hover:text-white transition-colors">
+                    العودة للخيارات السابقة
+                  </button>
                 </div>
-              </div>
-              
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-lg" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> جاري...</> : <><RotateCcw className="mr-2 h-4 w-4" /> إرسال رابط إعادة التعيين</>}
-              </Button>
-              
-              <div className="mt-2 text-center">
-                <Button variant="link" onClick={() => setView("login")}>
-                  العودة إلى تسجيل الدخول
+              </form>
+            )}
+
+            {view === "reset" && (
+              <form onSubmit={handleResetPassword} className="space-y-8">
+                <div className="space-y-3">
+                  <Label htmlFor="emailReset" className="text-white/70 text-sm font-bold uppercase tracking-widest mr-1">بريدك المسجل</Label>
+                  <div className="relative group">
+                    <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-secondary transition-colors" />
+                    <Input
+                      id="emailReset"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      dir="ltr"
+                      className="h-14 pr-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-secondary/50 focus:border-secondary transition-all"
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full h-14 bg-secondary text-primary hover:bg-white transition-all duration-500 font-black text-lg rounded-2xl shadow-xl" disabled={loading}>
+                  {loading ? <><Loader2 className="ml-2 h-5 w-5 animate-spin" /> جاري الطلب...</> : "إرسال رابط الاستعادة"}
                 </Button>
-              </div>
-            </form>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+
+                <div className="mt-4 text-center">
+                  <button type="button" onClick={() => setView("login")} className="text-white/50 hover:text-white transition-colors">
+                    العودة لتسجيل الدخول
+                  </button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </div>
+      </div >
+    </div >
   );
 };
 
