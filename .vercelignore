@@ -1,0 +1,28 @@
+# Development files
+node_modules
+.env.local
+.env.*.local
+
+# Build files
+dist
+.vite
+
+# IDE
+.vscode
+.idea
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (optional)
+*.md
+!README.md
+
+# Test files
+*.test.*
+*.spec.*
